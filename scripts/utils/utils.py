@@ -11,6 +11,12 @@ import traceback
 
 from web3 import Web3
 
+OP_WETH = "0x4200000000000000000000000000000000000006"
+OP_WBTC = "0x68f180fcCe6836688e9084f035309E29Bf0A2095"
+OP_USD_PLUS = "0x73cb180bf0521828d8849bc8CF2B920918e23032"
+OP_SUSD = "0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9"
+OP_VELODROME_V1 = "0x3c8B650257cFb5f272f799F5e2b4e65093a11a05"
+
 class colors:
     INFO = '\033[94m'
     OK = '\033[92m'
@@ -117,6 +123,11 @@ def get_coin_list(platform, update_prices=False):
         if os.path.exists(path+"/coin_list_"+platform+".json"):
             with open(path+"/coin_list_"+platform+".json", "r") as f:
                 coin_list = json.load(f)
+
+    del coin_list[OP_WETH]
+    del coin_list[OP_WBTC]
+    del coin_list[OP_USD_PLUS]
+    del coin_list[OP_SUSD]
     return coin_list
 
 def get_prices(platform, update_prices=False):
@@ -133,6 +144,7 @@ def get_prices(platform, update_prices=False):
             prices = json.load(f)
     else:
         prices["eth_to_usd"] = requests.get("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from="+from_timestamp+"&to="+to_timestamp).json()["prices"]
+                                                                      
     counter = 0
     total = 0
     if update_prices:
@@ -167,6 +179,13 @@ def get_prices(platform, update_prices=False):
                         counter = 0
                 else:
                     break
+        
+        prices[OP_WETH] = [ [timestamp, 1] for [timestamp, _] in prices["eth_to_usd"] ]
+        prices[OP_WBTC] = [ [timestamp, price] for [timestamp, price] in prices["0x078f358208685046a11C85e8ad32895DED33A249"] ]
+        prices[OP_USD_PLUS] = [ [timestamp, 1.0 / price] for [timestamp, price] in prices["eth_to_usd"] ]
+        prices[OP_SUSD] = [ [timestamp, 1.0 / price] for [timestamp, price] in prices["eth_to_usd"] ]
+        prices[OP_VELODROME_V1] = prices["0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db"]
+        
         with open(path+"/prices_"+platform+".json", "w") as f:
             json.dump(prices, f, indent=2)
     print("Fetched prices for", colors.INFO+str(len(prices))+colors.END, "coins.")
