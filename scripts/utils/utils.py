@@ -70,13 +70,18 @@ def get_events(w3, client_version, params, provider, network="ethereum", session
                 "id": 1
             })
             if res.status_code == 200:
-                events = res.json()["result"]
-                for event in events:
-                    event["address"] =  Web3.toChecksumAddress(event["address"].lower())
-                    event["blockNumber"] = int(event["blockNumber"], 16)
-                    event["transactionIndex"] = int(event["transactionIndex"], 16)
-                    event["logIndex"] = int(event["logIndex"], 16)
-                return events
+                data = res.json()
+                if "result" in data:
+                    events = data["result"]
+                    for event in events:
+                        event["address"] =  Web3.toChecksumAddress(event["address"].lower())
+                        event["blockNumber"] = int(event["blockNumber"], 16)
+                        event["transactionIndex"] = int(event["transactionIndex"], 16)
+                        event["logIndex"] = int(event["logIndex"], 16)
+                    return events
+                else:
+                    print("failed eth_getLogs, from block", hex(params["fromBlock"]), "to block", hex(params["toBlock"]), data)
+                    return None
             else:
                 print(colors.FAIL+"Error: Could not retrieve events: "+str(res.status_code)+" "+str(res.text)+" "+str(provider.endpoint_uri)+colors.END)
                 return None
@@ -117,8 +122,8 @@ def get_coin_list(platform, update_prices=False):
 def get_prices(platform, update_prices=False):
     coin_list = get_coin_list(platform, update_prices)
     print("Fetching latest prices from "+colors.INFO+"CoinGecko.com..."+colors.END)
-    from_timestamp = str(1708869576) 
-    to_timestamp = str(1730402541) 
+    from_timestamp = str(1684190403) # Date and time (GMT): Monday, May 15, 2023 10:40:03 PM
+    to_timestamp = str(1734216003) # Date and time (GMT): Saturday, December 14, 2024 10:40:03 PM
     prices = dict()
     path = os.path.dirname(__file__)
     if os.path.exists(path+"/prices_"+platform+".json"):
@@ -132,30 +137,34 @@ def get_prices(platform, update_prices=False):
         print("Retrieving prices for "+colors.INFO+str(len(coin_list))+" coin(s)."+colors.END)
         for address in coin_list:
             total += 1
-            if address not in prices:
-                market_id = coin_list[address]
-                print(address, market_id, "("+str(total)+"/"+str(len(coin_list))+")")
-                try:
-                    response = requests.get("https://api.coingecko.com/api/v3/coins/"+market_id+"/market_chart/range?vs_currency=eth&from="+from_timestamp+"&to="+to_timestamp)
-                    prices[address] = response.json()["prices"]
-                    counter += 1
-                    time.sleep(10)
-                except Exception:
-                    if  response.json()["status"] == 503 and response.json()["error"] == "Service Unavailable" or \
-                        response.json()["status"]["error_code"] == 429 and "Rate Limit" in response.json()["status"]["error_message"]:
-                        print(colors.FAIL+"Error: CoinGecko is either currently not available or they are rate limiting us. Waiting for 10 seconds before retrying..."+colors.END)
-                        with open(path+"/prices_"+platform+".json", "w") as f:
-                            json.dump(prices, f, indent=2)
+            while True:
+                if address not in prices:
+                    market_id = coin_list[address]
+                    print(address, market_id, "("+str(total)+"/"+str(len(coin_list))+")")
+                    try:
+                        response = requests.get("https://api.coingecko.com/api/v3/coins/"+market_id+"/market_chart/range?vs_currency=eth&from="+from_timestamp+"&to="+to_timestamp)
+                        prices[address] = response.json()["prices"]
+                        counter += 1
                         time.sleep(10)
-                    else:
-                        print(colors.FAIL+"Error:", response.text+colors.END)
+                    except Exception:
+                        print("retry ", address, market_id)
+                        if  response.json()["status"] == 503 and response.json()["error"] == "Service Unavailable" or \
+                            response.json()["status"]["error_code"] == 429 and "Rate Limit" in response.json()["status"]["error_message"]:
+                            print(colors.FAIL+"Error: CoinGecko is either currently not available or they are rate limiting us. Waiting for 10 seconds before retrying..."+colors.END)
+                            with open(path+"/prices_"+platform+".json", "w") as f:
+                                json.dump(prices, f, indent=2)
+                            time.sleep(10)
+                        else:
+                            print(colors.FAIL+"Error:", response.text+colors.END)
+                            with open(path+"/prices_"+platform+".json", "w") as f:
+                                json.dump(prices, f, indent=2)
+                            return prices, coin_list
+                    if counter == 10:
                         with open(path+"/prices_"+platform+".json", "w") as f:
                             json.dump(prices, f, indent=2)
-                        return prices, coin_list
-                if counter == 10:
-                    with open(path+"/prices_"+platform+".json", "w") as f:
-                        json.dump(prices, f, indent=2)
-                    counter = 0
+                        counter = 0
+                else:
+                    break
         with open(path+"/prices_"+platform+".json", "w") as f:
             json.dump(prices, f, indent=2)
     print("Fetched prices for", colors.INFO+str(len(prices))+colors.END, "coins.")
