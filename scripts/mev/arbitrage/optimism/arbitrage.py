@@ -45,17 +45,18 @@ BALANCER_FLASH_LOAN = "0x0d7d75e01ab95780d3cd1c8ec0dd6c2ce19e3a20427eec8bf53283b
 
 ETH  = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 WETH = "0x4200000000000000000000000000000000000006"
-EVENTS_NUM = 1000
+BLOCK_NUM = 1000
 
 def analyze_block(block_range):
     start = time.time()
+    retry_attempt = 0 
 
     from_block = block_range[0]
     last_block = block_range[1]
     BLOCK_RANGE_INDEX = block_range[2]
 
     while True:
-        to_block = from_block + EVENTS_NUM
+        to_block = from_block + BLOCK_NUM
 
         if to_block >= last_block:
             to_block = last_block
@@ -77,11 +78,18 @@ def analyze_block(block_range):
                 events_per_block[i] = list()
             for event in events:
                 events_per_block[event["blockNumber"]].append(event)
+            
+            retry_attempt = 0
         except Exception as e:
             print(colors.FAIL+str(traceback.format_exc())+colors.END)
             print(colors.FAIL+"Error: "+str(e)+" @ block range: "+str(from_block)+"-"+str(to_block)+colors.END)
             end = time.time()
-            return end - start
+            if retry_attempt == 3:
+                return end - start
+            retry_attempt += 1
+            time.sleep(5)
+            print("retry ", from_block, to_block)
+            continue
 
         execution_time = 0
         for block_number in events_per_block:
