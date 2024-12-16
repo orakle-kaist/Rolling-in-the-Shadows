@@ -963,7 +963,7 @@ def main():
     mongo_connection = pymongo.MongoClient("mongodb://"+MONGO_HOST+":"+str(MONGO_PORT), maxPoolSize=None)
 
     divided_block_ranges = [
-        [116200000, 117450000]
+        [116680000, 117850000]
     ]
     last_block_default = divided_block_ranges[int(BLOCK_RANGE_INDEX)][0]
     last_block_db, last_block_file = 0, 0
