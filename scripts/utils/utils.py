@@ -122,8 +122,10 @@ def get_coin_list(platform, update_prices=False):
 def get_prices(platform, update_prices=False):
     coin_list = get_coin_list(platform, update_prices)
     print("Fetching latest prices from "+colors.INFO+"CoinGecko.com..."+colors.END)
-    from_timestamp = str(1684190403) # Date and time (GMT): Monday, May 15, 2023 10:40:03 PM
-    to_timestamp = str(1734216003) # Date and time (GMT): Saturday, December 14, 2024 10:40:03 PM
+    # from_timestamp = str(1684190403) # Date and time (GMT): Monday, May 15, 2023 10:40:03 PM
+    # to_timestamp = str(1734216003) # Date and time (GMT): Saturday, December 14, 2024 10:40:03 PM
+    from_timestamp = str(1708869576) # test GMT: Sunday, February 25, 2024 1:59:36 PM
+    to_timestamp = str(1711352403) # test GMT: Monday, March 25, 2024 7:40:03 AM
     prices = dict()
     path = os.path.dirname(__file__)
     if os.path.exists(path+"/prices_"+platform+".json"):

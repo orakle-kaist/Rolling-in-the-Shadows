@@ -163,4 +163,4 @@ cython_debug/
 *.DS_Store
 
 # provider api key
-provider.txt
+.env

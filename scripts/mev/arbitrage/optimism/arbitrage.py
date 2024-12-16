@@ -13,6 +13,7 @@ import pymongo
 import requests
 import traceback
 import multiprocessing
+from dotenv import load_dotenv
 
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
@@ -902,7 +903,7 @@ def analyze_block(block_range):
     return end - start
 
 
-def init_process(_prices, _coin_list, _cache, PROVIDER):
+def init_process(_prices, _coin_list, _cache, ):
     global provider
     global w3
     global client_version
@@ -912,6 +913,10 @@ def init_process(_prices, _coin_list, _cache, PROVIDER):
     global cache
     global session
 
+    load_dotenv()
+
+    PROVIDER = os.environ.get('ARBITRAGE_OPTIMISM_PROVIDER_API_KEY')
+    print("PROVIDER ", PROVIDER)
     provider = Web3.HTTPProvider(PROVIDER, request_kwargs={'timeout': 60}) 
     w3 = Web3(provider)
     if w3.isConnected():
@@ -952,42 +957,13 @@ def main():
         print(colors.FAIL+"Error: block range number and provider"+colors.END)
         sys.exit(-1)
 
-    PROVIDER = ''
-    with open("provider.txt", "r") as file:
-        PROVIDER = file.readline().strip()  # 첫 번째 줄 읽기 및 공백 제거
-
-    print("PROVIDER ", PROVIDER)
-    if PROVIDER == '':
-        print(colors.FAIL+"Error: provider file"+colors.END)
-        sys.exit(-1)
-
     BLOCK_RANGE_INDEX = sys.argv[1]
     print("Block Range Index", BLOCK_RANGE_INDEX)
 
     mongo_connection = pymongo.MongoClient("mongodb://"+MONGO_HOST+":"+str(MONGO_PORT), maxPoolSize=None)
 
     divided_block_ranges = [
-        [117400000, 117800000], # 0
-        [117800001, 118200000], # 1
-        [118200001, 118600000], # 2
-        [118600001, 119000000], # 3
-        [119000001, 119400000], # 4
-        [119400001, 119800000], # 5 
-        [119800001, 120200000], # 6 
-        [120200001, 120600000], # 7 
-        [120600001, 121000000], # 8 
-        [121000001, 121400000], # 9 
-
-        [121400001, 121800000], # 10 
-        [121800001, 122200000], # 11
-        [122200001, 122600000], # 12
-        [122600001, 123000000], # 13
-        [123000001, 123400000], # 14
-        [123400001, 123800000], # 15
-        [123800001, 124200000], # 16
-        [124200001, 124600000], # 17
-        [124600001, 125000000], # 18
-        [125000001, 125400000], # 19
+        [116200000, 117450000]
     ]
     last_block_default = divided_block_ranges[int(BLOCK_RANGE_INDEX)][0]
     last_block_db, last_block_file = 0, 0
@@ -1018,7 +994,7 @@ def main():
         CPUs = 1
     print("Running detection of arbitrage with "+colors.INFO+str(CPUs)+colors.END+" CPUs")
     print("Initializing workers...")
-    with multiprocessing.Pool(processes=CPUs, initializer=init_process, initargs=(prices, coin_list, cache, PROVIDER, )) as pool:
+    with multiprocessing.Pool(processes=CPUs, initializer=init_process, initargs=(prices, coin_list, cache, )) as pool:
         start_total = time.time()
         execution_times += pool.map(analyze_block, block_ranges)
         end_total = time.time()
