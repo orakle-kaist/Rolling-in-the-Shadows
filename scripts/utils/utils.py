@@ -133,17 +133,26 @@ def get_coin_list(platform, update_prices=False):
 def get_prices(platform, update_prices=False):
     coin_list = get_coin_list(platform, update_prices)
     print("Fetching latest prices from "+colors.INFO+"CoinGecko.com..."+colors.END)
-    # from_timestamp = str(1684190403) # Date and time (GMT): Monday, May 15, 2023 10:40:03 PM
-    # to_timestamp = str(1734216003) # Date and time (GMT): Saturday, December 14, 2024 10:40:03 PM
-    from_timestamp = str(1708869576) # test GMT: Sunday, February 25, 2024 1:59:36 PM
-    to_timestamp = str(1711352403) # test GMT: Monday, March 25, 2024 7:40:03 AM
+    from_timestamp = str(1684190403) # Date and time (GMT): Monday, May 15, 2023 10:40:03 PM
+    to_timestamp = str(1734216003) # Date and time (GMT): Saturday, December 14, 2024 10:40:03 PM
+    # from_timestamp = str(1708869576) # test GMT: Sunday, February 25, 2024 1:59:36 PM
+    # to_timestamp = str(1711352403) # test GMT: Monday, March 25, 2024 7:40:03 AM
     prices = dict()
     path = os.path.dirname(__file__)
+
+    headers = {
+            "accept": "application/json",
+            "x-cg-pro-api-key": ""
+    }
+    
     if os.path.exists(path+"/prices_"+platform+".json"):
         with open(path+"/prices_"+platform+".json", "r") as f:
             prices = json.load(f)
     else:
-        prices["eth_to_usd"] = requests.get("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from="+from_timestamp+"&to="+to_timestamp).json()["prices"]
+        url  = "https://pro-api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from="+from_timestamp+"&to="+to_timestamp
+        response = requests.get(url, headers=headers)
+
+        prices["eth_to_usd"] = response.json()["prices"]
                                                                       
     counter = 0
     total = 0
@@ -156,7 +165,8 @@ def get_prices(platform, update_prices=False):
                     market_id = coin_list[address]
                     print(address, market_id, "("+str(total)+"/"+str(len(coin_list))+")")
                     try:
-                        response = requests.get("https://api.coingecko.com/api/v3/coins/"+market_id+"/market_chart/range?vs_currency=eth&from="+from_timestamp+"&to="+to_timestamp)
+                        url = "https://pro-api.coingecko.com/api/v3/coins/"+market_id+"/market_chart/range?vs_currency=eth&from="+from_timestamp+"&to="+to_timestamp
+                        response = requests.get(url, headers=headers)
                         prices[address] = response.json()["prices"]
                         counter += 1
                         time.sleep(10)

@@ -45,7 +45,7 @@ BALANCER_FLASH_LOAN = "0x0d7d75e01ab95780d3cd1c8ec0dd6c2ce19e3a20427eec8bf53283b
 
 ETH  = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 WETH = "0x4200000000000000000000000000000000000006"
-BLOCK_NUM = 1000
+BLOCK_NUM = 2000
 
 def analyze_block(block_range):
     start = time.time()
@@ -971,7 +971,8 @@ def main():
     mongo_connection = pymongo.MongoClient("mongodb://"+MONGO_HOST+":"+str(MONGO_PORT), maxPoolSize=None)
 
     divided_block_ranges = [
-        [116680000, 117850000]
+        [105939820, 117301420],
+        [117301421, 128663020],
     ]
     last_block_default = divided_block_ranges[int(BLOCK_RANGE_INDEX)][0]
     last_block_db, last_block_file = 0, 0
