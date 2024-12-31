@@ -162,5 +162,8 @@ cython_debug/
 
 *.DS_Store
 
+ethereum/**/*.json
+arbitrum/**/*.json
+zksync/**/*.json
 # provider api key
 .env
