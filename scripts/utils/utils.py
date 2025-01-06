@@ -195,14 +195,14 @@ def get_prices(platform, update_prices=False):
     print("Fetched prices for", colors.INFO+str(len(prices))+colors.END, "coins.")
     return prices, coin_list
 
-def get_price_from_timestamp(timestamp, prices):
+def get_price_from_timestamp(timestamp, prices, addr):
     timestamp *= 1000
     one_eth_to_usd = prices[-1][1]
     for index, _ in enumerate(prices):
         if index < len(prices)-1:
             if prices[index][0] <= timestamp and timestamp <= prices[index+1][0]:
                 return prices[index][1]
-    print(colors.FAIL+"Error: Could not find timestamp. Returning latest price instead."+colors.END)
+    print(colors.FAIL+"Error: Could not find timestamp. Returning latest price instead. " + str(timestamp) + " " + addr + " " +colors.END)
     print(colors.FAIL+"Please consider updating prices.json!"+colors.END)
     return one_eth_to_usd
 
