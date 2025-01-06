@@ -421,7 +421,7 @@ def analyze_block(block_range):
                 return end - start
 
             block = w3.eth.getBlock(block_number)
-            one_eth_to_usd_price = decimal.Decimal(float(get_price_from_timestamp(block["timestamp"], prices["eth_to_usd"])))
+            one_eth_to_usd_price = decimal.Decimal(float(get_price_from_timestamp(block["timestamp"], prices["eth_to_usd"], "eth_to_usd")))
 
             retrieved_flash_loans = False
             try:
@@ -472,7 +472,7 @@ def analyze_block(block_range):
                                             else:
                                                 try:
                                                     token_prices = prices[swap["in_token"]]
-                                                    one_token_to_eth_price = decimal.Decimal(float(get_price_from_timestamp(block["timestamp"], token_prices)))
+                                                    one_token_to_eth_price = decimal.Decimal(float(get_price_from_timestamp(block["timestamp"], token_prices, swap["in_token"])))
                                                 except:
                                                     one_token_to_eth_price = None
                                             intermediary_gains[swap["in_token"]] = {"token_name": swap["in_token_name"], "amount": 0, "decimals": decimals, "one_token_to_eth_price": one_token_to_eth_price}
@@ -500,7 +500,7 @@ def analyze_block(block_range):
                                             else:
                                                 try:
                                                     token_prices = prices[swap["out_token"]]
-                                                    one_token_to_eth_price = decimal.Decimal(float(get_price_from_timestamp(block["timestamp"], token_prices)))
+                                                    one_token_to_eth_price = decimal.Decimal(float(get_price_from_timestamp(block["timestamp"], token_prices, swap["out_token"])))
                                                 except:
                                                     one_token_to_eth_price = None
                                             intermediary_gains[swap["out_token"]] = {"token_name": swap["out_token_name"], "amount": 0, "decimals": decimals, "one_token_to_eth_price": one_token_to_eth_price}
@@ -732,7 +732,7 @@ def analyze_block(block_range):
                                                 total_cost_usd += loan["fee_eth"] * one_eth_to_usd_price
                                             elif token_address in prices:
                                                 token_prices = prices[token_address]
-                                                loan["token_to_eth_price"] = decimal.Decimal(float(get_price_from_timestamp(block["timestamp"], token_prices)))
+                                                loan["token_to_eth_price"] = decimal.Decimal(float(get_price_from_timestamp(block["timestamp"], token_prices, token_address)))
                                                 loan["amount_eth"] = amount * loan["token_to_eth_price"]
                                                 loan["fee_eth"] = fee * loan["token_to_eth_price"]
                                                 total_cost_eth += loan["fee_eth"]
