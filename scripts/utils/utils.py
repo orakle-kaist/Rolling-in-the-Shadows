@@ -12,7 +12,6 @@ import traceback
 from web3 import Web3
 
 OP_WETH = "0x4200000000000000000000000000000000000006"
-OP_WBTC = "0x68f180fcCe6836688e9084f035309E29Bf0A2095"
 OP_VELODROME_V1 = "0x3c8B650257cFb5f272f799F5e2b4e65093a11a05"
 
 class colors:
@@ -123,7 +122,6 @@ def get_coin_list(platform, update_prices=False):
                 coin_list = json.load(f)
 
     del coin_list[OP_WETH]
-    del coin_list[OP_WBTC]
     return coin_list
 
 def get_prices(platform, update_prices=False):
@@ -187,7 +185,6 @@ def get_prices(platform, update_prices=False):
                     break
         
         prices[OP_WETH] = [ [timestamp, 1] for [timestamp, _] in prices["eth_to_usd"] ]
-        prices[OP_WBTC] = [ [timestamp, price] for [timestamp, price] in prices["0x078f358208685046a11C85e8ad32895DED33A249"] ]
         prices[OP_VELODROME_V1] = prices["0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db"]
         
         with open(path+"/prices_"+platform+".json", "w") as f:
@@ -195,14 +192,14 @@ def get_prices(platform, update_prices=False):
     print("Fetched prices for", colors.INFO+str(len(prices))+colors.END, "coins.")
     return prices, coin_list
 
-def get_price_from_timestamp(timestamp, prices):
+def get_price_from_timestamp(timestamp, prices, addr):
     timestamp *= 1000
     one_eth_to_usd = prices[-1][1]
     for index, _ in enumerate(prices):
         if index < len(prices)-1:
             if prices[index][0] <= timestamp and timestamp <= prices[index+1][0]:
                 return prices[index][1]
-    print(colors.FAIL+"Error: Could not find timestamp. Returning latest price instead."+colors.END)
+    print(colors.FAIL+"Error: Could not find timestamp. Returning latest price instead. " + addr + " " +colors.END)
     print(colors.FAIL+"Please consider updating prices.json!"+colors.END)
     return one_eth_to_usd
 
